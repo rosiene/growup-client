@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src='http://localhost:3030/socket.io/socket.io.js'></script>
+    <script src='js/jquery-3.1.0.min.js'></script>
+    <script src='js/game.js'></script>
+
+    <meta charset="utf-8">
+    <title>Grow Up!</title>
+  </head>
+  <body>
+    <div class="flex-container">
+      <div class="form">
+        <h1>
+          <span style="color: #ff1a1a">G</span>
+          <span style="color: #3366ff">r</span>
+          <span style="color: #33cc33">o</span>
+          <span style="color: #ffff00">w  </span>
+          <span style="color: #ff0066">U</span>
+          <span style="color: #ff471a">p</span>
+          <span style="color: #cc0099">!</span>
+        </h1>
+        <h3><span id="n_players"></span>  players online</h3>
+        <form onsubmit="setPlayer(event)">
+          <input class="name" ref="name" type="text" placeholder="What's your name?" />
+          <br />
+          <input class="submit" type="submit" value="Start" />
+        </form>
+      </div>
+      <svg id="board" class="board" width="1200" height="650">
+      </svg>
+    </div>
+  </body>
+</html>

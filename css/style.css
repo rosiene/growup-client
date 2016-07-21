@@ -1,0 +1,51 @@
+body{
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+}
+
+h1{
+  font-size: 40px;
+}
+
+.flex-container{
+  display: flex;
+  align-items: center;
+}
+
+.board{
+  background-image: url('../image/gridme.png');
+}
+
+.form{
+  width: 400px;
+  height: 400px;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin-top: -200px;
+  margin-left: -200px;
+  background-color: #222;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.form .name{
+  margin: 10px 0px;
+  height: 20px;
+  padding: 6px 12px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.form .submit{
+  margin: 10px 0px;
+  padding: 10px 20px;
+  background-color: #222;
+  border: 1px solid #fff;
+  color: #fff;
+  border-radius: 4px;
+  text-align: center;
+}
