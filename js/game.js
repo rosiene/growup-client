@@ -2,11 +2,8 @@
 var currentCircles = [];
 var currentPlayers = [];
 var currentCircle = {};
+var position = {x: 500, y: 500}
 var socket = io.connect('http://localhost:3030');
-
-//socket.url(')
-
-//socket.connect('http://localhost:3030');
 
 socket.on('circles', function(circles){
   currentCircles = circles;
@@ -25,7 +22,7 @@ function runGame(){
 
     count_players();
 
-    var player = getCurrentPlayerByCircle(currentCircle.id);
+    var player = getCurrentPlayerByCircle(currentCircle);
 
     if(player != undefined){
       if (player.alive === 1){
@@ -35,6 +32,7 @@ function runGame(){
             currentEat(circle);
           }
         });
+        currentDelay();
       }else{
         $('.form').css("display", "inline");
       }
@@ -72,7 +70,7 @@ function updateGame(circles){
       newElement(circle)
     }else{
       if (circle.type == 'PLAYER'){
-        if (getCurrentPlayerByCircle(circle.id).alive === 0){
+        if (getCurrentPlayerByCircle(circle).alive === 0){
           deleteElement(circle);
         }
       }
@@ -107,8 +105,7 @@ function deleteElement(circle){
 }
 
 function newPosition(x, y){
-  currentCircle.cx = x;
-  currentCircle.cy = y;
+  position = {x: x, y: y};
 }
 
 function currentEat(circle){
@@ -126,7 +123,7 @@ function currentEat(circle){
       circle.cy = Math.floor(Math.random() * 640);
       circle.fill = randomColors();
       socket.emit('updateCircle', circle);
-      var player = getCurrentPlayerByCircle(currentCircle.id);
+      var player = getCurrentPlayerByCircle(currentCircle);
 
       //SCORE
       player.score = 1 + parseInt(player.score);
@@ -139,7 +136,7 @@ function currentEat(circle){
           parseFloat(circle.r) < parseFloat(currentCircle.r)){
         //KILL
         deleteElement(circle);
-        var player = getCurrentPlayerByCircle(circle.id);
+        var player = getCurrentPlayerByCircle(circle);
         player.alive = 0;
         socket.emit('updatePlayer', player);
       }
@@ -147,8 +144,8 @@ function currentEat(circle){
   }
 }
 
-function getCurrentPlayerByCircle(id_circle){
-  return currentPlayers.filter(function(player){ return player.id_circle === id_circle })[0];
+function getCurrentPlayerByCircle(circle){
+  return currentPlayers.filter(function(player){ return player.id_circle === circle.id })[0];
 }
 
 function randomColors(){
@@ -156,9 +153,27 @@ function randomColors(){
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-
 function currentGrow(circle){
   newSize = parseFloat(currentCircle.r) + parseFloat(circle.r)/30;
   currentCircle.r = newSize.toFixed(1);
   socket.emit('updateCircle', currentCircle);
+}
+
+function currentDelay(){
+    var player = getCurrentPlayerByCircle(currentCircle);
+    var newDelay = 1 + parseFloat(player.score)/5;
+
+    console.log(" newDeplay ", newDelay);
+
+    player.delay = newDelay;
+
+    var cx = parseFloat(currentCircle.cx);
+    var cy = parseFloat(currentCircle.cy);
+    var x = parseFloat(position.x);
+    var y = parseFloat(position.y);
+
+    currentCircle.cx = cx + ((x-cx)/newDelay);
+    currentCircle.cy = cy + ((y-cy)/newDelay);
+
+    socket.emit('updateCircle', currentCircle);
 }
