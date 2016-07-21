@@ -2,8 +2,9 @@
 var currentCircles = [];
 var currentPlayers = [];
 var currentCircle = {};
-var position = {x: 500, y: 500}
-var socket = io.connect('http://localhost:3030');
+var position = {x: 500, y: 500};
+var svgElement = document.getElementById("board");
+var socket = io.connect('http://localhost:3000');
 
 socket.on('circles', function(circles){
   currentCircles = circles;
@@ -14,6 +15,7 @@ socket.on('players', function(players){
   currentPlayers = players;
 });
 
+centerSvg();
 runGame();
 
 function runGame(){
@@ -80,14 +82,13 @@ function updateGame(circles){
 }
 
 function newElement(circle){
-  var svg = document.getElementById("board");
   var circleElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   circleElement.setAttribute("id", circle.id);
   circleElement.setAttribute("r", circle.r);
   circleElement.setAttribute("cx", circle.cx);
   circleElement.setAttribute("cy", circle.cy);
   circleElement.setAttribute("fill", circle.fill);
-  svg.appendChild(circleElement);
+  svgElement.appendChild(circleElement);
 }
 
 function updateElement(circle){
@@ -99,9 +100,8 @@ function updateElement(circle){
 }
 
 function deleteElement(circle){
-  var svg = document.getElementById("board");
   var circleElement = document.getElementById(circle.id);
-  svg.removeChild(circleElement);
+  svgElement.removeChild(circleElement);
 }
 
 function newPosition(x, y){
@@ -176,4 +176,21 @@ function currentDelay(){
     currentCircle.cy = cy + ((y-cy)/newDelay);
 
     socket.emit('updateCircle', currentCircle);
+}
+
+function scrollMove(w, h){
+  window.scrollTo(w, h);
+}
+
+function centerSvg(){
+  var svgW = parseInt(svgElement.getAttribute("width"));
+  var svgH = parseInt(svgElement.getAttribute("height"));
+
+  var screamW = parseInt(window.innerWidth);
+  var screamH = parseInt(window.innerHeight);
+
+  var w = svgW/2 - screamW/2;
+  var h = svgH/2 - screamH/2;
+  console.log(w, h);
+  window.scrollTo(w, h);
 }
