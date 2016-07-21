@@ -15,7 +15,7 @@ socket.on('players', function(players){
   currentPlayers = players;
 });
 
-centerSvg();
+//centerSvg();
 runGame();
 
 function runGame(){
@@ -100,8 +100,10 @@ function updateElement(circle){
 }
 
 function deleteElement(circle){
-  var circleElement = document.getElementById(circle.id);
-  svgElement.removeChild(circleElement);
+  var circle = document.getElementById(circle.id);
+  if (circle){
+    svgElement.removeChild(circle);
+  }
 }
 
 function newPosition(x, y){
@@ -172,14 +174,26 @@ function currentDelay(){
     var x = parseFloat(position.x);
     var y = parseFloat(position.y);
 
-    currentCircle.cx = cx + ((x-cx)/newDelay);
-    currentCircle.cy = cy + ((y-cy)/newDelay);
+    currentCircle.cx = cx + ((x-cx)/newDelay); // + parseFloat(window.pageXOffset);
+    currentCircle.cy = cy + ((y-cy)/newDelay); // + parseFloat(window.pageYOffset);
+
+    //scrollMove(currentCircle.cx, currentCircle.cy);
 
     socket.emit('updateCircle', currentCircle);
 }
 
-function scrollMove(w, h){
-  window.scrollTo(w, h);
+function scrollMove(x, y){
+  var centerWindowX = parseInt(window.innerWidth)/2;
+  var centerWindowY = parseInt(window.innerHeight)/2;
+
+  if (centerWindowX < x){
+    var newX = x - centerWindowX;
+    window.scrollTo(newX, window.pageYOffset);
+  }
+  if (centerWindowY < y){
+    var newY = y - centerWindowY;
+    window.scrollTo(newY, window.pageYOffset);
+  }
 }
 
 function centerSvg(){
