@@ -3,9 +3,10 @@ var currentCircles = [];
 var currentPlayers = [];
 var currentCircle = {};
 var currentPlayer = {};
-var position = {x: 500, y: 500};
+var position = {x: 1500, y: 1000};
 var socket = io.connect('http://localhost:3000');
 var svgElement = document.getElementById("board");
+var delay = 10;
 
 socket.on('circles', function(circles){
   currentCircles = circles;
@@ -28,6 +29,8 @@ function runGame(){
 
     if(currentPlayer != undefined){
       if (currentPlayer.alive === 1){
+        $('.form').css("display", "none");
+
         socket.emit('updateCircle', currentCircle);
 
         currentCircles.forEach(function(circle){
@@ -36,13 +39,13 @@ function runGame(){
           }
         });
         currentDelay();
-
       }else{
         $('.form').css("display", "inline");
       }
     }
     runGame();
-  }, 100);
+    console.log(delay);
+  }, delay);
 }
 
 function count_players(){
@@ -55,6 +58,7 @@ function setNewPlayer(event){
   event.preventDefault();
 
   $('.form').css("display", "none");
+
   var name = document.getElementById("name").value;
   document.getElementById("name").value = "";
 
@@ -64,7 +68,7 @@ function setNewPlayer(event){
   socket.on('circle', function(circle){
     currentCircle = circle;
 
-    currentPlayer = {id: 0, id_circle: currentCircle.id, name: name, score: 0, delay: 5, alive: 1};
+    currentPlayer = {id: 0, id_circle: currentCircle.id, name: name, score: 0, alive: 1};
     socket.emit('newPlayer', currentPlayer);
 
     socket.on('player', function(player){
@@ -187,21 +191,37 @@ function currentGrow(circle){
 }
 
 function currentDelay(){
-    var newDelay = 1 + parseFloat(currentPlayer.score)/5;
+  var score = parseInt(currentPlayer.score);
+  if (score > delay){
+    delay = score;
+  }
 
-    currentPlayer.delay = newDelay;
+  var cx = parseFloat(currentCircle.cx);
+  var cy = parseFloat(currentCircle.cy);
+  var x = parseFloat(position.x);
+  var y = parseFloat(position.y);
 
-    var cx = parseFloat(currentCircle.cx);
-    var cy = parseFloat(currentCircle.cy);
-    var x = parseFloat(position.x);
-    var y = parseFloat(position.y);
+  if(cx < x){
+    cx += 2;
+  }else if (cx > x) {
+    cx -= 2;
+  }
+  if(cy < y){
+    cy += 2;
+  }else if (cy > y) {
+    cy -= 2;
+  }
 
-    currentCircle.cx = cx + ((x-cx)/newDelay); // + parseFloat(window.pageXOffset);
-    currentCircle.cy = cy + ((y-cy)/newDelay); // + parseFloat(window.pageYOffset);
+  currentCircle.cx = cx;
+  currentCircle.cy = cy;
 
-    scrollMove(currentCircle.cx, currentCircle.cy);
+  scrollMove(currentCircle.cx, currentCircle.cy);
 
-    socket.emit('updateCircle', currentCircle);
+  socket.emit('updateCircle', currentCircle);
+}
+
+function slowMotion(){
+
 }
 
 function scrollMove(x, y){
