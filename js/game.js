@@ -2,39 +2,41 @@
 var currentCircles = [];
 var currentPlayers = [];
 var currentCircle = {};
+var currentPlayer = {};
 var position = {x: 500, y: 500};
-var svgElement = document.getElementById("board");
 var socket = io.connect('http://localhost:3000');
+var svgElement = document.getElementById("board");
 
 socket.on('circles', function(circles){
   currentCircles = circles;
-  updateGame(circles);
 });
 
 socket.on('players', function(players){
   currentPlayers = players;
 });
 
-//centerSvg();
+centerSvg();
 runGame();
 
 function runGame(){
   setTimeout(function () {
-    socket.emit('load');
+    socket.emit('load', currentPlayer);
 
     count_players();
+    updateCurrentPlayer();
+    updateAllElements();
 
-    var player = getCurrentPlayerByCircle(currentCircle);
-
-    if(player != undefined){
-      if (player.alive === 1){
+    if(currentPlayer != undefined){
+      if (currentPlayer.alive === 1){
         socket.emit('updateCircle', currentCircle);
+
         currentCircles.forEach(function(circle){
           if(circle.id != currentCircle.id){
             currentEat(circle);
           }
         });
         currentDelay();
+
       }else{
         $('.form').css("display", "inline");
       }
@@ -49,34 +51,61 @@ function count_players(){
   document.getElementById("n_players").innerHTML = n_players;
 }
 
-function setPlayer(event){
+function setNewPlayer(event){
   event.preventDefault();
 
   $('.form').css("display", "none");
+  var name = document.getElementById("name").value;
+  document.getElementById("name").value = "";
 
-  var name = event.target[0].value;
-  socket.emit('newPlayerAndCircle', name);
-  socket.on('player-circle', function(player, circle){
+  currentCircle = {id: 0, r: 20, cx: 1500, cy: 1000, fill: randomColors(), type: 'PLAYER'};
+  socket.emit('newCircle', currentCircle);
+
+  socket.on('circle', function(circle){
     currentCircle = circle;
+
+    currentPlayer = {id: 0, id_circle: currentCircle.id, name: name, score: 0, delay: 5, alive: 1};
+    socket.emit('newPlayer', currentPlayer);
+
+    socket.on('player', function(player){
+      currentPlayer = player;
+    });
+
     socket.emit('load');
   });
+
   window.addEventListener('mousemove', function(event){
     newPosition(event.clientX, event.clientY);
   });
 }
 
-function updateGame(circles){
-  circles.forEach(function(circle) {
+function updateCurrentPlayer(){
+  currentPlayers.forEach(function(player){
+    if(currentPlayer.id === player.id){
+      currentPlayer = player;
+    }
+  });
+}
+
+function updateAllElements(){
+  currentCircles.forEach(function(circle){
     var circleElement = document.getElementById(circle.id);
-    if (circleElement == null){
-      newElement(circle)
-    }else{
-      if (circle.type == 'PLAYER'){
-        if (getCurrentPlayerByCircle(circle).alive === 0){
-          deleteElement(circle);
-        }
+    if(circle.type == 'PLAYER'){
+      var player = getPlayerByCircle(circle);
+
+      if (circleElement == null && player.alive === 1){
+        newElement(circle);
+      }else if (player.alive === 0) {
+        deleteElement(circle);
+      }else{
+        updateElement(circle);
       }
-      updateElement(circle);
+    }else{ //FOOD
+      if (circleElement == null){
+        newElement(circle)
+      }else{
+        updateElement(circle);
+      }
     }
   });
 }
@@ -100,14 +129,20 @@ function updateElement(circle){
 }
 
 function deleteElement(circle){
-  var circle = document.getElementById(circle.id);
-  if (circle){
-    svgElement.removeChild(circle);
+  var circleElement = document.getElementById(circle.id);
+  if (circleElement){
+    svgElement.removeChild(circleElement);
   }
 }
 
+function getPlayerByCircle(circle){
+  return currentPlayers.filter(function(player){ return player.id_circle === circle.id })[0];
+}
+
 function newPosition(x, y){
-  position = {x: x, y: y};
+  var newX = parseInt(x) + parseInt(window.pageXOffset);
+  var newY = parseInt(y) + parseInt(window.pageYOffset);
+  position = {x: newX, y: newY};
 }
 
 function currentEat(circle){
@@ -125,34 +160,24 @@ function currentEat(circle){
       circle.cy = Math.floor(Math.random() * 640);
       circle.fill = randomColors();
       socket.emit('updateCircle', circle);
-      var player = getCurrentPlayerByCircle(currentCircle);
 
       //SCORE
-      player.score = 1 + parseInt(player.score);
-      socket.emit('updatePlayer', player);
+      currentPlayer.score = 1 + parseInt(currentPlayer.score);
+      socket.emit('updatePlayer', currentPlayer);
 
       //GROW
       currentGrow(circle);
+
     }else{
       if(circle.id != currentCircle.id &&
           parseFloat(circle.r) < parseFloat(currentCircle.r)){
         //KILL
-        deleteElement(circle);
-        var player = getCurrentPlayerByCircle(circle);
+        var player = getPlayerByCircle(circle);
         player.alive = 0;
         socket.emit('updatePlayer', player);
       }
     }
   }
-}
-
-function getCurrentPlayerByCircle(circle){
-  return currentPlayers.filter(function(player){ return player.id_circle === circle.id })[0];
-}
-
-function randomColors(){
-  var colors = ["#ff1a1a", "#3366ff", "#33cc33", "#ffff00", "#ff0066", "#ff471a", "#cc0099"];
-  return colors[Math.floor(Math.random() * colors.length)];
 }
 
 function currentGrow(circle){
@@ -162,12 +187,9 @@ function currentGrow(circle){
 }
 
 function currentDelay(){
-    var player = getCurrentPlayerByCircle(currentCircle);
-    var newDelay = 1 + parseFloat(player.score)/5;
+    var newDelay = 1 + parseFloat(currentPlayer.score)/5;
 
-    console.log(" newDeplay ", newDelay);
-
-    player.delay = newDelay;
+    currentPlayer.delay = newDelay;
 
     var cx = parseFloat(currentCircle.cx);
     var cy = parseFloat(currentCircle.cy);
@@ -177,7 +199,7 @@ function currentDelay(){
     currentCircle.cx = cx + ((x-cx)/newDelay); // + parseFloat(window.pageXOffset);
     currentCircle.cy = cy + ((y-cy)/newDelay); // + parseFloat(window.pageYOffset);
 
-    //scrollMove(currentCircle.cx, currentCircle.cy);
+    scrollMove(currentCircle.cx, currentCircle.cy);
 
     socket.emit('updateCircle', currentCircle);
 }
@@ -186,13 +208,14 @@ function scrollMove(x, y){
   var centerWindowX = parseInt(window.innerWidth)/2;
   var centerWindowY = parseInt(window.innerHeight)/2;
 
-  if (centerWindowX < x){
+  if(centerWindowX < x){
     var newX = x - centerWindowX;
     window.scrollTo(newX, window.pageYOffset);
   }
-  if (centerWindowY < y){
+
+  if(centerWindowY < y){
     var newY = y - centerWindowY;
-    window.scrollTo(newY, window.pageYOffset);
+    window.scrollTo(window.pageXOffset, newY);
   }
 }
 
@@ -205,6 +228,9 @@ function centerSvg(){
 
   var w = svgW/2 - screamW/2;
   var h = svgH/2 - screamH/2;
-  console.log(w, h);
-  window.scrollTo(w, h);
+}
+
+function randomColors(){
+  var colors = ["#ff1a1a", "#3366ff", "#33cc33", "#ffff00", "#ff0066", "#ff471a", "#cc0099"];
+  return colors[Math.floor(Math.random() * colors.length)];
 }
