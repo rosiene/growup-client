@@ -1,4 +1,3 @@
-
 var currentCircles = [];
 var currentPlayers = [];
 var currentCircle = {};
@@ -6,7 +5,7 @@ var currentPlayer = {};
 var position = {x: 1500, y: 1000};
 var socket = io.connect('http://localhost:3000');
 var svgElement = document.getElementById("board");
-var delay = 10;
+
 
 socket.on('circles', function(circles){
   currentCircles = circles;
@@ -16,36 +15,43 @@ socket.on('players', function(players){
   currentPlayers = players;
 });
 
+
+//<i class="fa-li fa fa-spinner fa-spin"></i>
+
 centerSvg();
 runGame();
 
 function runGame(){
   setTimeout(function () {
     socket.emit('load', currentPlayer);
+    if(socket.connected){
+      $('.load').css("display", "none");
+      count_players();
+      updateCurrentPlayer();
+      updateAllElements();
 
-    count_players();
-    updateCurrentPlayer();
-    updateAllElements();
+      if(currentPlayer != undefined){
+        if (currentPlayer.alive === 1){
 
-    if(currentPlayer != undefined){
-      if (currentPlayer.alive === 1){
-        $('.form').css("display", "none");
+          updatePainels();
+          currentDelay();
 
-        socket.emit('updateCircle', currentCircle);
+          socket.emit('updateCircle', currentCircle);
 
-        currentCircles.forEach(function(circle){
-          if(circle.id != currentCircle.id){
-            currentEat(circle);
-          }
-        });
-        currentDelay();
-      }else{
-        $('.form').css("display", "inline");
+          currentCircles.forEach(function(circle){
+            if(circle.id != currentCircle.id){
+              currentEat(circle);
+            }
+          });
+        }else{
+          updatePainelsGameOver();
+        }
       }
+    }else{
+      $('.load').css("display", "inline");
     }
     runGame();
-    console.log(delay);
-  }, delay);
+  }, 150);
 }
 
 function count_players(){
@@ -57,7 +63,7 @@ function count_players(){
 function setNewPlayer(event){
   event.preventDefault();
 
-  $('.form').css("display", "none");
+  $('.form-content').css("display", "none");
 
   var name = document.getElementById("name").value;
   document.getElementById("name").value = "";
@@ -139,6 +145,41 @@ function deleteElement(circle){
   }
 }
 
+function updatePainels(){
+  $('.form').css("display", "none");
+  $('.form-content').css("display", "none");
+  $('.score').css("display", "inline");
+  $('.score-content').css("display", "inline");
+  $('.ranking').css("display", "inline");
+  $('.ranking-content').css("display", "inline");
+
+  document.getElementById("score").innerHTML = currentPlayer.score;
+  document.getElementById("ranking").innerHTML = "";
+
+  sortedPlayers().slice(0,10).forEach(function(player){
+    if(player.id === currentPlayer.id){
+      document.getElementById("ranking").innerHTML = document.getElementById("ranking").innerHTML + "<li>" + player.name + " [" + player.score + "] * </li>";
+    }else{
+      document.getElementById("ranking").innerHTML = document.getElementById("ranking").innerHTML + "<li>" + player.name + " [" + player.score + "]</li>";
+    }
+  });
+}
+
+function updatePainelsGameOver(){
+  $('.form').css("display", "inline");
+  $('.form-content').css("display", "inline");
+  $('.score').css("display", "none");
+  $('.score-content').css("display", "none");
+  $('.ranking').css("display", "none");
+  $('.ranking-content').css("display", "none");
+}
+
+function sortedPlayers() {
+  return currentPlayers.sort(function(a, b) {
+    return b.score - a.score;
+  });
+}
+
 function getPlayerByCircle(circle){
   return currentPlayers.filter(function(player){ return player.id_circle === circle.id })[0];
 }
@@ -173,12 +214,16 @@ function currentEat(circle){
       currentGrow(circle);
 
     }else{
-      if(circle.id != currentCircle.id &&
-          parseFloat(circle.r) < parseFloat(currentCircle.r)){
-        //KILL
-        var player = getPlayerByCircle(circle);
-        player.alive = 0;
-        socket.emit('updatePlayer', player);
+      if(circle.id != currentCircle.id){
+        if(parseFloat(circle.r) < parseFloat(currentCircle.r)){
+          var player = getPlayerByCircle(circle);
+          player.alive = 0;
+          socket.emit('updatePlayer', player);
+        }else if(parseFloat(circle.r) > parseFloat(currentCircle.r)){
+          var player = getPlayerByCircle(currentCircle);
+          player.alive = 0;
+          socket.emit('updatePlayer', player);
+        }
       }
     }
   }
@@ -191,37 +236,19 @@ function currentGrow(circle){
 }
 
 function currentDelay(){
-  var score = parseInt(currentPlayer.score);
-  if (score > delay){
-    delay = score;
-  }
+  var delay = 5 + parseInt(currentPlayer.score)/5;
 
   var cx = parseFloat(currentCircle.cx);
   var cy = parseFloat(currentCircle.cy);
   var x = parseFloat(position.x);
   var y = parseFloat(position.y);
 
-  if(cx < x){
-    cx += 2;
-  }else if (cx > x) {
-    cx -= 2;
-  }
-  if(cy < y){
-    cy += 2;
-  }else if (cy > y) {
-    cy -= 2;
-  }
-
-  currentCircle.cx = cx;
-  currentCircle.cy = cy;
+  currentCircle.cx = cx + ((x-cx)/delay);
+  currentCircle.cy = cy + ((y-cy)/delay);
 
   scrollMove(currentCircle.cx, currentCircle.cy);
 
   socket.emit('updateCircle', currentCircle);
-}
-
-function slowMotion(){
-
 }
 
 function scrollMove(x, y){

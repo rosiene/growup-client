@@ -2,10 +2,11 @@
 <html>
   <head>
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/style.css">
 
-    <script src='http://localhost:3000/socket.io/socket.io.js'></script>
+    <script src='https://cdn.socket.io/socket.io-1.4.5.js'></script>
     <script src='js/jquery-3.1.0.min.js'></script>
 
     <meta charset="utf-8">
@@ -16,7 +17,9 @@
     </svg>
     <div class="flex-container">
       <div class="form">
-        <h1>
+      </div>
+      <div class="form-content">
+        <h2>
           <span style="color: #ff1a1a">G</span>
           <span style="color: #3366ff">r</span>
           <span style="color: #33cc33">o</span>
@@ -24,7 +27,7 @@
           <span style="color: #ff0066">U</span>
           <span style="color: #ff471a">p</span>
           <span style="color: #cc0099">!</span>
-        </h1>
+        </h2>
         <h3><span id="n_players"></span>  players online</h3>
         <form onsubmit="setNewPlayer(event)">
           <input class="name" id="name" type="text" placeholder="What's your name?" />
@@ -32,8 +35,23 @@
           <input class="submit" type="submit" value="Start" />
         </form>
       </div>
-      <div class="ranking">Ranking: </div>
-      <div class="score">Score: </div>
+      <div class="score"></div>
+      <div class="score-content">Score: <span id="score"></span></div>
+      <div class="ranking"></div>
+      <div class="ranking-content">Ranking: <ol id="ranking"></ol></div>
+    </div>
+    <div class="load">
+      <h1>
+        <span style="color: #ff1a1a">G</span>
+        <span style="color: #3366ff">r</span>
+        <span style="color: #33cc33">o</span>
+        <span style="color: #ffff00">w  </span>
+        <span style="color: #ff0066">U</span>
+        <span style="color: #ff471a">p</span>
+        <span style="color: #cc0099">!</span>
+      </h1>
+      <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+      <span class="sr-only">Loading...</span>
     </div>
   </body>
   <script src='js/game.js'></script>

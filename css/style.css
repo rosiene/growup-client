@@ -4,19 +4,24 @@ body{
 }
 
 h1{
+  font-size: 80px;
+}
+
+h2{
   font-size: 40px;
 }
+
 .flex-container{
   z-index: 1;
 }
 
 .board{
-  background-image: url('../image/gridme.png');
+  background-image: url('../image/grid.png');
 }
 
 .form{
   width: 400px;
-  height: 400px;
+  height: 350px;
   position:fixed;
   top:50%;
   left:50%;
@@ -26,9 +31,24 @@ h1{
   padding: 10px;
   border-radius: 10px;
   text-align: center;
+  opacity: 0.6;
+  filter: alpha(opacity=60);
 }
 
-.form .name{
+.form-content{
+  width: 400px;
+  height: 350px;
+  position:fixed;
+  top:50%;
+  left:50%;
+  margin-top: -200px;
+  margin-left: -200px;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.form-content .name{
   margin: 10px 0px;
   height: 20px;
   padding: 6px 12px;
@@ -38,7 +58,7 @@ h1{
   text-align: center;
 }
 
-.form .submit{
+.form-content .submit{
   margin: 10px 0px;
   padding: 10px 20px;
   background-color: #222;
@@ -50,7 +70,7 @@ h1{
 
 .score{
   position:fixed;
-  width: 100px;
+  width: 120px;
   height: 30px;
   margin: 10px;
   top: 0px;
@@ -63,17 +83,55 @@ h1{
   display: none;
 }
 
+.score-content{
+  position: fixed;
+  width: 120px;
+  height: 30px;
+  margin: 10px;
+  top: 0px;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  display: none;
+}
+
 .ranking{
-  position:fixed;
+  position: fixed;
   width: 150px;
-  height: 200px;
+  height: 250px;
   margin: 10px;
   top: 60px;
   background-color: #222;
   padding: 10px;
   border-radius: 10px;
-  text-align: center;
   opacity: 0.6;
   filter: alpha(opacity=60);
+  display: none;
+}
+
+.ranking-content{
+  position:fixed;
+  width: 150px;
+  height: 250px;
+  margin: 10px;
+  top: 60px;
+  padding: 16px;
+  border-radius: 10px;
+  display: none;
+}
+
+.ranking-content ol{
+  font-size: 12px;
+  padding-left: 20px;
+}
+
+.load{
+  padding-top: 150px;
+  position: absolute;
+  background: #222;
+  top: 0px;
+  width: 100%;
+  min-height: 100%;
+  text-align: center;
   display: none;
 }
